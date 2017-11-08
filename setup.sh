@@ -15,15 +15,15 @@ function Setup {
 }
 
 function WGET {
-  wget -O "$1" "$2"
+  wget -q --show-progress -O "$1" "$2"
 }
 
 function DPKG {
-  dpkg --vextract "$1" "$2"
+  dpkg --vextract "$1" "$2" >/dev/null 2>&1
 }
 
 function CP {
-  cp -frv $@
+  cp -fr $@
 }
 
 function RM {
@@ -43,7 +43,7 @@ function Slack {
   WGET "$download_folder/slack.deb" 'https://downloads.slack-edge.com/linux_releases/slack-desktop-2.8.2-amd64.deb'
   ECHO "Extracting Slack..."
   DPKG "$download_folder/slack.deb" "$temp_folder/slack"
-  ECHO "Copying to $local_folder Slack..."
+  ECHO "Installing Slack..."
   CP   $temp_folder/slack/usr/* $local_folder
   cat << EOF > $HOME/.local/share/applications/slack.desktop
 [Desktop Entry]
@@ -60,7 +60,7 @@ EOF
   ECHO "Deleting temp files"
   RM   "$temp_folder/slack"
   RM   "$download_folder/slack.deb"
-  slack &
+  slack </dev/null >/dev/null 2>&1 &
   ECHO "Slack installed!"
 }
 
@@ -69,7 +69,7 @@ function VSCode {
   WGET "$download_folder/vscode.deb" 'https://go.microsoft.com/fwlink/?LinkID=760868'
   ECHO "Extracting VSCode..."
   DPKG "$download_folder/vscode.deb" "$temp_folder/vscode"
-  ECHO "Copying to $local_folder vscode..."
+  ECHO "Installing VSCode..."
   CP   $temp_folder/vscode/usr/* $local_folder
   ln -s $local_folder/share/code/code $bin_folder/code
 
@@ -108,11 +108,11 @@ EOF
   ECHO "Deleting temp files"
   RM   "$temp_folder/vscode"
   RM   "$download_folder/vscode.deb"
-  code &
+  code </dev/null >/dev/null 2>&1 &
   ECHO "VSCode installed!"
 }
 
-apps=("Slack" "VSCode")
+apps=("Slack" "VSCode" "exit")
 
 function PrintOpts {
   for i in "${!apps[@]}"; do
