@@ -3,6 +3,7 @@ local_folder="$HOME/.local"
 download_folder="$local_folder/downloads"
 bin_folder="$local_folder/bin"
 temp_folder="$local_folder/temp"
+
 function MK {
   mkdir -p "$1"
 }
@@ -22,6 +23,10 @@ function DPKG {
   dpkg --vextract "$1" "$2" >/dev/null 2>&1
 }
 
+function TAR {
+  tar -xf "$1" -C "$2" --checkpoint=.1000
+}
+
 function CP {
   cp -fr $@
 }
@@ -31,7 +36,7 @@ function RM {
 }
 
 function ECHO {
-  echo "$1"
+  echo -ne "$1"
 }
 
 function ICO {
@@ -39,11 +44,11 @@ function ICO {
 }
 
 function Slack {
-  ECHO "Downloading Slack..."
+  ECHO "Downloading Slack...\n"
   WGET "$download_folder/slack.deb" 'https://downloads.slack-edge.com/linux_releases/slack-desktop-2.8.2-amd64.deb'
-  ECHO "Extracting Slack..."
+  ECHO "Extracting Slack...\n"
   DPKG "$download_folder/slack.deb" "$temp_folder/slack"
-  ECHO "Installing Slack..."
+  ECHO "Installing Slack...\n"
   CP   $temp_folder/slack/usr/* $local_folder
   cat << EOF > $HOME/.local/share/applications/slack.desktop
 [Desktop Entry]
@@ -57,11 +62,11 @@ Exec=$HOME/.local/bin/slack
 OnlyShowIn=Unity;
 EOF
   ICO "slack.desktop"
-  ECHO "Deleting temp files"
+  ECHO "Deleting temp files\n"
   RM   "$temp_folder/slack"
   RM   "$download_folder/slack.deb"
   slack </dev/null >/dev/null 2>&1 &
-  ECHO "Slack installed!"
+  ECHO "Slack installed!\n"
 }
 
 function VSCode {
@@ -69,7 +74,7 @@ function VSCode {
   WGET "$download_folder/vscode.deb" 'https://go.microsoft.com/fwlink/?LinkID=760868'
   ECHO "Extracting VSCode..."
   DPKG "$download_folder/vscode.deb" "$temp_folder/vscode"
-  ECHO "Installing VSCode..."
+  ECHO "Installing VSCode...\n"
   CP   $temp_folder/vscode/usr/* $local_folder
   ln -s $local_folder/share/code/code $bin_folder/code
 
@@ -105,18 +110,40 @@ function VSCode {
 EOF
 
   ICO "code.desktop"
-  ECHO "Deleting temp files"
+  ECHO "Deleting temp files\n"
   RM   "$temp_folder/vscode"
   RM   "$download_folder/vscode.deb"
   code </dev/null >/dev/null 2>&1 &
-  ECHO "VSCode installed!"
+  ECHO "VSCode installed!\n"
 }
 
-apps=("Slack" "VSCode" "exit")
+function Telegram {
+  ECHO "Dowloading Telegram\n"
+  WGET "$download_folder/telegram.tar" "https://telegram.org/dl/desktop/linux"
+  
+  ECHO "Extracting Telegram..."
+  MK "$temp_folder/telegram"
+  TAR "$download_folder/telegram.tar" "$temp_folder/telegram"
+  ECHO "\n"
+  
+  ECHO "Installing Telegram\n"
+  mv $temp_folder/telegram/* $local_folder/share/telegram
+  ln -sf $local_folder/share/telegram/Telegram $bin_folder/telegram
+  
+  ECHO "Deleting temp files\n"
+  RM "$download_folder/telegram.tar"
+  RM "$temp_folder/telegram"
+  
+  telegram </dev/null >/dev/null 2>&1 &
+  
+  ECHO "Telegram installed\n"
+}
+
+apps=("Slack" "VSCode" "Telegram" "exit")
 
 function PrintOpts {
   for i in "${!apps[@]}"; do
-      echo "$i ${apps[$i]}"
+      ECHO "$i ${apps[$i]}\n"
   done
 }
 
